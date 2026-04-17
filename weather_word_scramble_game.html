@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة خربطة الكلمات عن الطقس</title>
+    <style>
+        body { font-family: Arial, sans-serif; direction: rtl; }
+        .container { max-width: 600px; margin: auto; padding: 20px; text-align: center; }
+        .word { display: inline-block; margin: 10px; padding: 10px; border: 2px solid #333; cursor: pointer; }
+        .selected { background-color: #f0e68c; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>لعبة خربطة الكلمات عن الطقس</h1>
+        <div id="words-container"></div>
+        <button id="check-words">تحقق من الإجابات</button>
+        <div id="result"></div>
+    </div>
+    <script>
+        const words = ["شمس", "مطر", "ثلج", "رياح", "غيم"];
+        const container = document.getElementById('words-container');
+        words.sort(() => 0.5 - Math.random());
+        words.forEach((word) => {
+            const wordElement = document.createElement('div');
+            wordElement.textContent = word.split('').sort(() => 0.5 - Math.random()).join('');
+            wordElement.classList.add('word');
+            wordElement.addEventListener('click', function() {
+                this.classList.toggle('selected');
+            });
+            container.appendChild(wordElement);
+        });
+        document.getElementById('check-words').addEventListener('click', () => {
+            const selectedWords = Array.from(document.querySelectorAll('.selected')).map(word => word.textContent);
+            const correctWords = words.map(word => word.split('').sort().join(''));
+            const resultElement = document.getElementById('result');
+            resultElement.innerHTML = selectedWords.length === correctWords.length && selectedWords.every(word => correctWords.includes(word.split('').sort().join('')))
+                ? 'كل شيء صحيح!'
+                : 'هناك خطأ في الإجابات.';
+        });
+    </script>
+</body>
+</html>
