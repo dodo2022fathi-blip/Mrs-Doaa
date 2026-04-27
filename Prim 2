@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Challenge - Mrs. Doaa Fathi</title>
+    <style>
+        :root { --pink: #ff3385; --yellow: #ffeb3b; --bg: #fff5f8; }
+        body { 
+            font-family: 'Arial', sans-serif; 
+            background: var(--bg); 
+            text-align: center; 
+            font-weight: 900; 
+            margin: 0; 
+            padding: 20px; 
+        }
+        .game-card { 
+            max-width: 500px; 
+            background: white; 
+            margin: auto; 
+            padding: 30px; 
+            border: 8px solid var(--pink); 
+            border-radius: 40px; 
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1); 
+            position: relative; 
+        }
+        
+        .brand { 
+            color: var(--pink); 
+            font-size: 30px; 
+            margin-bottom: 20px; 
+            display: block;
+        }
+        .emoji-view { font-size: 100px; margin: 20px 0; }
+        .input-display { 
+            font-size: 35px; 
+            background: #fff9c4; 
+            border: 4px dashed var(--pink); 
+            padding: 15px; 
+            border-radius: 20px; 
+            min-height: 50px; 
+            color: #333; 
+            margin-bottom: 20px; 
+        }
+        
+        .btn-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+        .btn { 
+            padding: 15px 25px; 
+            font-size: 22px; 
+            font-weight: 900; 
+            border-radius: 15px; 
+            border: none; 
+            cursor: pointer; 
+            transition: 0.2s; 
+            background: var(--pink); 
+            color: white; 
+            box-shadow: 0 5px 0 #c2185b; 
+        }
+        .btn:active { transform: translateY(4px); box-shadow: none; }
+        .btn-opt { background: white; color: var(--pink); border: 3px solid var(--pink); width: 100%; box-shadow: 0 5px 0 #ddd; }
+        
+        .hidden { display: none; }
+        .next-btn { background: #2ecc71; box-shadow: 0 5px 0 #27ae60; padding: 15px 60px; margin-top: 20px; }
+
+        /* تأثير النجوم */
+        .star { 
+            position: absolute; 
+            color: #ffcc00; 
+            font-size: 40px; 
+            pointer-events: none; 
+            animation: popUp 0.8s ease-out forwards; 
+            z-index: 100; 
+        }
+        @keyframes popUp { 
+            0% { transform: scale(0) rotate(0); opacity: 1; } 
+            100% { transform: scale(2) rotate(360deg) translateY(-150px); opacity: 0; } 
+        }
+
+        #certificate { border: 12px double var(--pink); padding: 30px; border-radius: 30px; background: #fff; }
+    </style>
+</head>
+<body>
+
+<div class="game-card">
+    <div class="brand">⭐ <b>Mrs. Doaa Fathi</b> ⭐</div>
+
+    <div id="start-screen">
+        <h1 style="color: var(--pink);">English Challenge 🌈</h1>
+        <p style="font-size: 20px;">اكتب اسمك يا بطل:</p>
+        <input type="text" id="student-name" style="padding:15px; font-size:22px; width:80%; border-radius:15px; border:3px solid var(--pink); text-align:center; font-weight:900;">
+        <br><br>
+        <button class="btn" onclick="initGame()">ابدأ اللعبة 🚀</button>
+    </div>
+
+    <div id="quiz-area" class="hidden">
+        <h2 id="inst">Arrange the letters:</h2>
+        <div id="emoji-box" class="emoji-view"></div>
+        
+        <div id="scramble-ui">
+            <div id="word-box" class="input-display"></div>
+            <div id="letters-grid" class="btn-grid"></div>
+            <br>
+            <button onclick="resetTyped()" style="background:#666; color:white; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:900;">مسح ⌫</button>
+        </div>
+
+        <div id="match-ui" class="hidden">
+            <div id="options-grid" class="btn-grid"></div>
+        </div>
+
+        <div id="feedback" style="margin-top:20px; font-size:28px; height:40px;"></div>
+        <button id="next-btn" class="btn next-btn hidden" onclick="loadNext()">Next Question ➡️</button>
+    </div>
+
+    <div id="cert" class="hidden">
+        <h1 style="color:var(--pink); font-size:45px;">EXCELLENT! 🏆</h1>
+        <p style="font-size:24px;">This certificate is for the star:</p>
+        <h2 id="winner" style="color:#007bff; font-size:40px; border-bottom: 3px solid;"></h2>
+        <p style="margin-top:20px;">You finished Unit 5 successfully!</p>
+        <div class="brand">⭐ <b>Mrs. Doaa Fathi</b> ⭐</div>
+        <div style="font-size:60px;">⭐⭐⭐⭐⭐</div>
+        <button class="btn" onclick="location.reload()">إعادة التحدي 🔄</button>
+    </div>
+</div>
+
+<script>
+    // بيانات الكلمات من الصورة المرفقة
+    const quizData = [
+        { type: 's', word: 'CAR', em: '🚗' },
+        { type: 's', word: 'BUS', em: '🚌' },
+        { type: 's', word: 'SHOP', em: '🛍️' },
+        { type: 's', word: 'SCHOOL', em: '🏫' },
+        { type: 's', word: 'TRUCK', em: '🚚' },
+        { type: 'm', word: 'HOSPITAL', em: '🏥', opts: ['HOSPITAL', 'TOWN', 'STREET'] },
+        { type: 'm', word: 'STREET', em: '🛣️', opts: ['STREET', 'CAR', 'SCHOOL'] },
+        { type: 'm', word: 'TOWN', em: '🏘️', opts: ['SHOP', 'TOWN', 'BUS'] },
+        { type: 'm', word: 'BUILDING', em: '🏢', opts: ['BUILDING', 'SICK', 'WALK'] },
+        { type: 'm', word: 'SICK', em: '🤒', opts: ['BUY', 'SICK', 'WALK'] }
+    ];
+
+    let index = 0;
+    let typed = "";
+    let audioContext;
+
+    // تشغيل نظام الصوت بمجرد التفاعل
+    function initGame() {
+        if(!document.getElementById('student-name').value) return alert("من فضلك اكتب اسمك!");
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('quiz-area').classList.remove('hidden');
+        loadNext();
+    }
+
+    // توليد نغمة النجاح برمجياً (مضمونة العمل)
+    function makeSuccessSound() {
+        if (!audioContext) return;
+        const osc = audioContext.createOscillator();
+        const g = audioContext.createGain();
+        osc.connect(g); g.connect(audioContext.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523, audioContext.currentTime); 
+        osc.frequency.exponentialRampToValueAtTime(880, audioContext.currentTime + 0.1);
+        g.gain.setValueAtTime(0.2, audioContext.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+        osc.start(); osc.stop(audioContext.currentTime + 0.4);
+    }
+
+    function loadNext() {
+        if(index >= quizData.length) return showCert();
+        const q = quizData[index];
+        document.getElementById('emoji-box').innerText = q.em;
+        document.getElementById('feedback').innerText = "";
+        document.getElementById('next-btn').classList.add('hidden');
+        typed = ""; document.getElementById('word-box').innerText = "";
+
+        if(q.type === 's') {
+            document.getElementById('inst').innerText = "Arrange the letters:";
+            document.getElementById('scramble-ui').classList.remove('hidden');
+            document.getElementById('match-ui').classList.add('hidden');
+            let letters = q.word.split('').sort(() => Math.random() - 0.5);
+            let box = document.getElementById('letters-grid'); box.innerHTML = "";
+            letters.forEach(l => {
+                let b = document.createElement('button'); b.className = 'btn'; b.innerText = l;
+                b.onclick = () => {
+                    typed += l; document.getElementById('word-box').innerText = typed;
+                    if(typed === q.word) winAction();
+                    else if(typed.length === q.word.length) { resetTyped(); }
+                };
+                box.appendChild(b);
+            });
+        } else {
+            document.getElementById('inst').innerText = "Choose the correct word:";
+            document.getElementById('scramble-ui').classList.add('hidden');
+            document.getElementById('match-ui').classList.remove('hidden');
+            let box = document.getElementById('options-grid'); box.innerHTML = "";
+            q.opts.forEach(o => {
+                let b = document.createElement('button'); b.className = 'btn btn-opt'; b.innerText = o;
+                b.onclick = () => { if(o === q.word) winAction(); else document.getElementById('feedback').innerText = "❌ Try again"; };
+                box.appendChild(b);
+            });
+        }
+    }
+
+    function winAction() {
+        makeSuccessSound();
+        // إنشاء تأثير النجوم
+        for(let i=0; i<15; i++) {
+            let s = document.createElement('div'); s.className = 'star'; s.innerHTML = "⭐";
+            s.style.left = (Math.random() * 80 + 10) + "%"; s.style.top = "50%";
+            document.querySelector('.game-card').appendChild(s);
+            setTimeout(() => s.remove(), 800);
+        }
+        document.getElementById('feedback').innerHTML = "<span style='color:#2ecc71;'>Correct! ⭐✨</span>";
+        document.getElementById('next-btn').classList.remove('hidden');
+        index++;
+    }
+
+    function resetTyped() { typed = ""; document.getElementById('word-box').innerText = ""; }
+
+    function showCert() {
+        document.getElementById('quiz-area').classList.add('hidden');
+        document.getElementById('cert').classList.remove('hidden');
+        document.getElementById('winner').innerText = document.getElementById('student-name').value;
+    }
+</script>
+</body>
+</html>
